@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caça-Níquel Copa 98 • Copinha (Versão Atualizada)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&amp;display=swap');
+        
+        body {
+            background: linear-gradient(#111827, #0f172a);
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        
+        .retro-font {
+            font-family: 'Press Start 2P', system-ui;
+            letter-spacing: 1px;
+        }
+        
+        .machine {
+            background: linear-gradient(145deg, #1e2937, #0f172a);
+            border: 14px solid #d4af37;
+            box-shadow: 
+                0 0 0 10px #334155,
+                0 30px 60px -15px rgb(0 0 0 / 0.5),
+                inset 0 4px 20px rgba(244, 208, 63, 0.15),
+                inset 0 -4px 20px rgba(0,0,0,0.6);
+            max-width: 960px;
+            margin: 20px auto;
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .machine-header {
+            background: linear-gradient(#d4af37, #b7950b, #d4af37);
+            color: #1e2937;
+            text-shadow: 2px 2px 0 #fff, -1px -1px 0 #fff;
+            padding: 14px 28px;
+            position: relative;
+        }
+        
+        .panel {
+            background: #0f172a;
+            border: 10px solid #475569;
+            box-shadow: 
+                inset 0 0 40px rgba(0,0,0,0.9),
+                0 0 0 6px #334155;
+            padding: 18px;
+            border-radius: 12px;
+        }
+        
+        .flag-card {
+            background: #1e2937;
+            border: 4px solid #475569;
+            transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .flag-card:hover {
+            border-color: #f4d03f;
+            transform: translateY(-3px) scale(1.02);
+        }
+        
+        .flag-card.selected {
+            border-color: #f4d03f;
+            box-shadow: 0 0 0 5px rgba(244, 208, 63, 0.5),
+                        0 0 30px rgba(244, 208, 63, 0.7);
+            background: #334155;
+        }
+        
+        .flag-card.lit {
+            animation: lightChase 120ms ease forwards;
+            box-shadow: 0 0 0 7px #f4d03f,
+                        0 0 40px #f4d03f;
+            border-color: #f4d03f;
+            z-index: 5;
+        }
+        
+        .flag-card.winner {
+            animation: winnerPulse 1.4s ease forwards;
+            box-shadow: 0 0 0 10px #22c55e,
+                        0 0 55px #22c55e;
+            border-color: #22c55e;
+            z-index: 20;
+        }
+        
+        @keyframes lightChase {
+            0% { transform: scale(0.92); }
+            40% { transform: scale(1.12); }
+            100% { transform: scale(1); }
+        }
+        
+        @keyframes winnerPulse {
+            0%, 100% { transform: scale(1); }
+            30% { transform: scale(1.18); }
+            70% { transform: scale(1.05); }
+        }
+        
+        .led-display {
+            background: #020617;
+            border: 4px solid #475569;
+            font-family: 'Press Start 2P', monospace;
+            color: #4ade80;
+            text-shadow: 0 0 12px #4ade80;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.95);
+            letter-spacing: 4px;
+        }
+        
+        .coin {
+            position: absolute;
+            z-index: 999;
+            pointer-events: none;
+            font-size: 1.6rem;
+            filter: drop-shadow(2px 3px 2px rgba(0,0,0,0.4));
+        }
+        
+        .retro-btn {
+            font-family: 'Press Start 2P', system-ui;
+            letter-spacing: 1.5px;
+            transition: all 0.1s ease;
+            box-shadow: 0 5px 0 #854d0e,
+                        inset 0 -3px 0 rgba(255,255,255,0.25);
+        }
+        
+        .retro-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #854d0e;
+        }
+        
+        .section-title {
+            font-size: 0.7rem;
+            letter-spacing: 2.5px;
+            color: #f4d03f;
+        }
+        
+        .flag-emoji {
+            font-size: 2.9rem;
+            line-height: 1;
+            filter: drop-shadow(3px 3px 3px rgba(0,0,0,0.5));
+        }
+        
+        .winner-display {
+            background: #020617;
+            border: 6px solid #475569;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.8);
+        }
+    </style>
+</head>
+<body class="min-h-screen py-8 px-4">
+    <div class="max-w-[980px] mx-auto">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-4 px-2">
+            <div class="flex items-center gap-x-4">
+                <div class="w-11 h-11 bg-yellow-400 rounded-xl flex items-center justify-center shadow-inner border-2 border-yellow-600">
+                    <i class="fa-solid fa-futbol text-[#1e2937] text-4xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-4xl font-black text-yellow-300 tracking-[-2px] retro-font">COPA 98</h1>
+                    <p class="text-yellow-400 text-sm -mt-1.5 tracking-[4px]">CAÇA-NÍQUEL • COPINHA</p>
+                </div>
+            </div>
+            <div class="text-right">
+                <div class="text-xs text-yellow-400/70">EMULAÇÃO FIEL • ASV PROJETOS STYLE</div>
+                <div class="text-[10px] text-yellow-400/50">Roleta Quadrada • Bandeiras • 25 centavos</div>
+            </div>
+        </div>
+
+        <!-- MACHINE -->
+        <div class="machine mx-auto rounded-3xl shadow-2xl">
+            
+            <!-- Top Marquee -->
+            <div class="machine-header px-8 py-5 flex items-center justify-between">
+                <div class="flex items-center gap-x-5">
+                    <div class="px-5 py-1.5 bg-[#1e2937] text-yellow-300 text-xs font-bold tracking-[3px] retro-font border border-yellow-300/40 rounded-lg">
+                        CAÇA NÍQUEL
+                    </div>
+                    <div>
+                        <div class="text-[#1e2937] text-[27px] font-black tracking-[-1.5px] retro-font leading-none">COPA 98</div>
+                        <div class="text-[#1e2937]/80 text-xs font-bold -mt-1">FRANÇA 1998 • ROLETA DE LUZ</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-x-3">
+                    <div class="px-4 py-1.5 bg-[#1e2937] rounded-xl text-yellow-300 text-xs flex items-center gap-x-2 border border-yellow-300/30">
+                        <i class="fa-solid fa-globe"></i>
+                        <span class="font-bold">16 BANDEIRAS</span>
+                    </div>
+                    <div class="flex items-center gap-x-1.5">
+                        <div class="w-3.5 h-3.5 bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_#ef4444]"></div>
+                        <div class="text-xs text-yellow-300/70 font-mono">ONLINE</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-7 bg-[#0f172a]">
+                
+                <!-- Credit + Winner Display -->
+                <div class="flex justify-center items-end gap-x-6 mb-6">
+                    
+                    <!-- Credits -->
+                    <div class="text-center">
+                        <div class="section-title mb-1">CRÉDITOS</div>
+                        <div id="credit-display" 
+                             class="led-display text-6xl font-black px-9 py-2 rounded-2xl min-w-[170px] text-center tabular-nums tracking-[5px]">
+                            025
+                        </div>
+                        <div class="text-yellow-400 text-xs mt-1 font-bold">MOEDAS DE 25 CENTAVOS</div>
+                    </div>
+
+                    <!-- Winner Display (Big) -->
+                    <div id="winner-display" 
+                         class="winner-display hidden flex-col items-center justify-center px-6 py-2 rounded-2xl w-[210px] h-[92px] border-yellow-300/30">
+                        <div class="text-[10px] text-yellow-400 tracking-widest mb-0.5">VENCEDOR</div>
+                        <div id="winner-flag" class="text-6xl leading-none"></div>
+                        <div id="winner-name" class="text-yellow-300 text-sm font-bold -mt-1"></div>
+                    </div>
+                </div>
+
+                <!-- Flag Panel Title -->
+                <div class="flex items-center justify-between mb-3 px-1">
+                    <div>
+                        <span class="section-title">ROLETA QUADRADA • BANDEIRAS DOS PAÍSES</span>
+                    </div>
+                    <div id="selected-count" 
+                         class="text-xs px-3 py-1 bg-yellow-400/10 text-yellow-300 rounded-lg font-mono">
+                        0/16 selecionadas
+                    </div>
+                </div>
+                
+                <!-- 4x4 FLAG GRID -->
+                <div id="flag-panel" 
+                     class="panel grid grid-cols-4 gap-[13px] p-5 bg-[#020617] rounded-3xl border border-yellow-300/20">
+                    <!-- JS populated -->
+                </div>
+
+                <!-- Payout Preview -->
+                <div class="mt-4 mb-2 px-1 flex justify-between items-center text-xs">
+                    <div class="text-yellow-400/70">Pagamento estimado se acertar:</div>
+                    <div id="payout-preview" 
+                         class="font-mono text-yellow-300 bg-yellow-400/10 px-3 py-0.5 rounded text-sm font-bold">
+                        3 ~ 14 créditos
+                    </div>
+                </div>
+
+                <!-- Controls -->
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-3 mt-3">
+                    
+                    <!-- Insert Coin -->
+                    <div class="md:col-span-5">
+                        <button onclick="insertCoin()"
+                                class="retro-btn w-full flex items-center justify-center gap-x-3 bg-gradient-to-b from-yellow-300 to-yellow-400 hover:from-yellow-200 active:from-yellow-500 text-[#1e2937] font-black text-sm py-4 px-7 rounded-2xl shadow-xl border-[3px] border-yellow-500">
+                            <i class="fa-solid fa-coins text-2xl"></i>
+                            <div class="text-left leading-none">
+                                <div class="font-black tracking-wider text-lg">INSERIR MOEDA</div>
+                                <div class="text-xs -mt-0.5 font-bold opacity-80">+5 CRÉDITOS (25¢)</div>
+                            </div>
+                        </button>
+                    </div>
+                    
+                    <div class="md:col-span-3 flex gap-2.5">
+                        <button onclick="selectAllFlags()" 
+                                class="retro-btn flex-1 bg-zinc-700 hover:bg-zinc-600 text-yellow-300 text-xs font-bold py-[17px] rounded-2xl border border-yellow-300/30 active:bg-zinc-800">
+                            <i class="fa-solid fa-check-double mr-2"></i>TODAS
+                        </button>
+                        <button onclick="clearSelection()" 
+                                class="retro-btn flex-1 bg-zinc-700 hover:bg-zinc-600 text-yellow-300 text-xs font-bold py-[17px] rounded-2xl border border-yellow-300/30 active:bg-zinc-800">
+                            <i class="fa-solid fa-times mr-2"></i>LIMPAR
+                        </button>
+                    </div>
+                    
+                    <!-- Spin -->
+                    <div class="md:col-span-4">
+                        <button id="spin-btn"
+                                onclick="spinRoulette()"
+                                class="retro-btn w-full flex items-center justify-center gap-x-3 bg-gradient-to-b from-red-600 to-red-700 hover:from-red-500 active:from-red-800 text-white font-black text-xl py-[18px] px-8 rounded-2xl shadow-2xl border-b-[5px] border-red-900 disabled:opacity-40">
+                            <i class="fa-solid fa-sync fa-spin-pulse mr-2.5 text-2xl"></i>
+                            <span class="tracking-[2px]">GIRAR ROLETA</span>
+                        </button>
+                        <div class="text-center mt-1.5">
+                            <span class="text-xs text-red-400/70 font-mono tracking-wider">1 CRÉDITO POR GIRO</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status -->
+                <div id="status-area" class="mt-6 min-h-[48px] flex items-center justify-center text-center">
+                    <div id="status-text" class="px-6 py-2 text-sm text-yellow-300/90 font-medium">
+                        Escolha as bandeiras e gire a roleta. Boa sorte!
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Bar -->
+            <div class="bg-[#020617] px-7 py-3.5 text-xs flex items-center justify-between text-yellow-300/60 border-t border-yellow-300/10">
+                <div class="flex items-center gap-x-5 text-xs">
+                    <div><i class="fa-solid fa-globe mr-1.5"></i>16 PAÍSES</div>
+                    <div><i class="fa-solid fa-coins mr-1.5"></i>MOEDAS 25¢</div>
+                </div>
+                <div class="font-mono text-xs">ROLETA DE LUZ • COPA 98 • ASV STYLE</div>
+                <div onclick="resetMachine()" class="cursor-pointer hover:text-yellow-300 flex items-center gap-x-1.5 transition-colors">
+                    <i class="fa-solid fa-redo fa-sm"></i>
+                    <span class="text-xs">RESETAR</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="max-w-[860px] mx-auto mt-4 px-4 text-center text-xs text-yellow-400/50">
+            Recriação fiel da máquina física Copa 98 (estilo ASV Projetos). Roleta quadrada com bandeiras • Apostas em 25 centavos • Animação de luzes realista.
+        </div>
+    </div>
+
+    <script>
+        // Game Data
+        const FLAGS = [
+            { id: 1, emoji: '🇧🇷', name: 'Brasil', short: 'BRA' },
+            { id: 2, emoji: '🇫🇷', name: 'França', short: 'FRA' },
+            { id: 3, emoji: '🇦🇷', name: 'Argentina', short: 'ARG' },
+            { id: 4, emoji: '🇩🇪', name: 'Alemanha', short: 'GER' },
+            { id: 5, emoji: '🇮🇹', name: 'Itália', short: 'ITA' },
+            { id: 6, emoji: '🇳🇱', name: 'Holanda', short: 'NED' },
+            { id: 7, emoji: '🇪🇸', name: 'Espanha', short: 'ESP' },
+            { id: 8, emoji: '🇬🇧', name: 'Inglaterra', short: 'ENG' },
+            { id: 9, emoji: '🇲🇽', name: 'México', short: 'MEX' },
+            { id: 10, emoji: '🇺🇸', name: 'Estados Unidos', short: 'USA' },
+            { id: 11, emoji: '🇯🇵', name: 'Japão', short: 'JPN' },
+            { id: 12, emoji: '🇰🇷', name: 'Coreia do Sul', short: 'KOR' },
+            { id: 13, emoji: '🇳🇬', name: 'Nigéria', short: 'NGA' },
+            { id: 14, emoji: '🇨🇲', name: 'Camarões', short: 'CMR' },
+            { id: 15, emoji: '🇨🇴', name: 'Colômbia', short: 'COL' },
+            { id: 16, emoji: '🇨🇱', name: 'Chile', short: 'CHI' }
+        ];
+
+        let credits = 25;
+        let selectedFlags = new Set();
+        let isSpinning = false;
+        let flagElements = [];
+
+        function updateCreditsDisplay() {
+            const display = document.getElementById('credit-display');
+            display.textContent = credits.toString().padStart(3, '0');
+            display.style.transition = 'none';
+            display.style.color = '#4ade80';
+            setTimeout(() => {
+                display.style.transition = 'color 350ms ease';
+                display.style.color = '#22c55e';
+            }, 40);
+        }
+
+        function updateSelectedCount() {
+            const countEl = document.getElementById('selected-count');
+            countEl.textContent = `${selectedFlags.size}/16 selecionadas`;
+            
+            if (selectedFlags.size > 0) {
+                countEl.classList.add('bg-yellow-400', 'text-[#1e2937]');
+                countEl.classList.remove('bg-yellow-400/10', 'text-yellow-300');
+            } else {
+                countEl.classList.remove('bg-yellow-400', 'text-[#1e2937]');
+                countEl.classList.add('bg-yellow-400/10', 'text-yellow-300');
+            }
+            
+            updatePayoutPreview();
+        }
+
+        function updatePayoutPreview() {
+            const preview = document.getElementById('payout-preview');
+            if (selectedFlags.size === 0) {
+                preview.textContent = '3 ~ 14 créditos';
+                return;
+            }
+            
+            const num = selectedFlags.size;
+            let minPay = Math.max(3, Math.floor(22 / num));
+            let maxPay = (num === 1) ? 14 : (num === 2) ? 9 : minPay;
+            
+            preview.textContent = `${minPay} ~ ${maxPay} créditos`;
+        }
+
+        function renderFlagPanel() {
+            const panel = document.getElementById('flag-panel');
+            panel.innerHTML = '';
+            flagElements = [];
+
+            FLAGS.forEach(flag => {
+                const card = document.createElement('div');
+                card.className = `flag-card flex flex-col items-center justify-center p-[13px] rounded-2xl text-center h-[96px]`;
+                
+                card.innerHTML = `
+                    <div class="flag-emoji mb-1">${flag.emoji}</div>
+                    <div class="text-[10.5px] font-bold text-yellow-300 tracking-[1.5px]">${flag.short}</div>
+                    <div class="text-[8.2px] text-yellow-400/70 leading-none mt-px">${flag.name}</div>
+                `;
+                
+                card.dataset.flagId = flag.id;
+
+                card.addEventListener('click', () => {
+                    if (isSpinning) return;
+                    const id = parseInt(card.dataset.flagId);
+                    
+                    if (selectedFlags.has(id)) {
+                        selectedFlags.delete(id);
+                        card.classList.remove('selected');
+                    } else {
+                        selectedFlags.add(id);
+                        card.classList.add('selected');
+                    }
+                    updateSelectedCount();
+                    updateSpinButtonState();
+                });
+
+                panel.appendChild(card);
+                flagElements.push(card);
+            });
+            updateSelectedCount();
+        }
+
+        function updateSpinButtonState() {
+            const btn = document.getElementById('spin-btn');
+            btn.disabled = !(selectedFlags.size > 0 && credits >= 1 && !isSpinning);
+        }
+
+        function insertCoin() {
+            if (isSpinning) return;
+            credits += 5;
+            updateCreditsDisplay();
+            createCoinInsertEffect();
+            playCoinSound();
+            showStatusMessage('Moeda de 25 centavos inserida! +5 créditos', 1300);
+            updateSpinButtonState();
+        }
+
+        function createCoinInsertEffect() {
+            const machine = document.querySelector('.machine');
+            const coin = document.createElement('div');
+            coin.className = 'coin text-yellow-300';
+            coin.innerHTML = '🪙';
+            coin.style.left = '38%';
+            coin.style.top = '15%';
+            coin.style.position = 'absolute';
+            machine.appendChild(coin);
+
+            setTimeout(() => {
+                coin.style.transition = 'all 680ms cubic-bezier(0.25,0.1,0.25,1)';
+                coin.style.top = '82%';
+                coin.style.opacity = '0';
+                coin.style.transform = 'rotate(620deg)';
+                setTimeout(() => coin.remove(), 700);
+            }, 90);
+        }
+
+        function selectAllFlags() {
+            if (isSpinning) return;
+            selectedFlags.clear();
+            flagElements.forEach(el => {
+                selectedFlags.add(parseInt(el.dataset.flagId));
+                el.classList.add('selected');
+            });
+            updateSelectedCount();
+            updateSpinButtonState();
+            showStatusMessage('Todas as bandeiras selecionadas (pagamento menor)', 1400);
+        }
+
+        function clearSelection() {
+            if (isSpinning) return;
+            selectedFlags.clear();
+            flagElements.forEach(el => el.classList.remove('selected'));
+            updateSelectedCount();
+            updateSpinButtonState();
+        }
+
+        // Improved sequential + random light chase (more physical-like)
+        async function spinRoulette() {
+            if (isSpinning || selectedFlags.size === 0 || credits < 1) return;
+
+            isSpinning = true;
+            document.getElementById('spin-btn').disabled = true;
+            document.getElementById('winner-display').classList.add('hidden');
+
+            credits -= 1;
+            updateCreditsDisplay();
+            showStatusMessage('Girando a roleta de luz...', 99999);
+
+            const spinSound = playSpinSound();
+
+            // Clear states
+            flagElements.forEach(el => el.classList.remove('lit', 'winner', 'selected'));
+
+            // Phase 1: Fast random chase (1.6s)
+            let chaseCount = 0;
+            const fastChase = setInterval(() => {
+                flagElements.forEach(el => el.classList.remove('lit'));
+                const rand = flagElements[Math.floor(Math.random() * flagElements.length)];
+                rand.classList.add('lit');
+                chaseCount++;
+                
+                if (chaseCount > 19) {
+                    clearInterval(fastChase);
+                    startSlowingPhase(spinSound);
+                }
+            }, 75);
+        }
+
+        function startSlowingPhase(spinSound) {
+            let chaseCount = 20;
+            const slowInterval = setInterval(() => {
+                flagElements.forEach(el => el.classList.remove('lit'));
+                const rand = flagElements[Math.floor(Math.random() * flagElements.length)];
+                rand.classList.add('lit');
+                chaseCount++;
+
+                if (chaseCount > 27) {
+                    clearInterval(slowInterval);
+                    finishSpin(spinSound);
+                }
+            }, 220);
+        }
+
+        function finishSpin(spinSound) {
+            if (spinSound) clearInterval(spinSound);
+
+            // Pick real winner
+            const winnerIndex = Math.floor(Math.random() * FLAGS.length);
+            const winner = FLAGS[winnerIndex];
+            const winnerEl = flagElements.find(el => parseInt(el.dataset.flagId) === winner.id);
+
+            flagElements.forEach(el => el.classList.remove('lit'));
+
+            // Highlight winner
+            if (winnerEl) {
+                winnerEl.classList.add('winner');
+            }
+
+            // Show big winner display
+            showBigWinner(winner);
+
+            const won = selectedFlags.has(winner.id);
+
+            setTimeout(() => {
+                if (won) {
+                    const num = selectedFlags.size;
+                    let payout = Math.max(3, Math.floor(22 / num));
+                    if (num === 1) payout = 14;
+                    if (num === 2) payout = 9;
+
+                    credits += payout;
+                    updateCreditsDisplay();
+
+                    showWinMessage(winner, payout);
+                    createCoinPayoutAnimation(payout);
+                    playWinSound();
+
+                    setTimeout(() => {
+                        if (winnerEl) winnerEl.classList.remove('winner');
+                    }, 2100);
+                } else {
+                    showStatusMessage(`Parou em ${winner.emoji} ${winner.name}. Tente novamente!`, 2400);
+                    playLoseSound();
+                    setTimeout(() => {
+                        if (winnerEl) winnerEl.classList.remove('winner');
+                    }, 1300);
+                }
+
+                isSpinning = false;
+                updateSpinButtonState();
+                
+                // Re-apply selected styles
+                flagElements.forEach(el => {
+                    const id = parseInt(el.dataset.flagId);
+                    if (selectedFlags.has(id)) el.classList.add('selected');
+                });
+            }, 680);
+        }
+
+        function showBigWinner(winner) {
+            const display = document.getElementById('winner-display');
+            const flagEl = document.getElementById('winner-flag');
+            const nameEl = document.getElementById('winner-name');
+
+            flagEl.innerHTML = winner.emoji;
+            nameEl.textContent = winner.name;
+            display.classList.remove('hidden');
+            display.classList.add('flex');
+        }
+
+        function showWinMessage(winner, payout) {
+            const area = document.getElementById('status-area');
+            area.innerHTML = `
+                <div class="px-7 py-3 bg-emerald-900/70 border border-emerald-400 rounded-2xl flex items-center gap-x-4">
+                    <div class="text-5xl">${winner.emoji}</div>
+                    <div>
+                        <div class="text-emerald-300 font-black text-2xl tracking-wider">GANHOU!</div>
+                        <div class="text-emerald-400 text-lg">+${payout} CRÉDITOS</div>
+                    </div>
+                </div>
+            `;
+            
+            setTimeout(() => {
+                if (!isSpinning) {
+                    area.innerHTML = `<div id="status-text" class="px-6 py-2 text-sm text-yellow-300/90 font-medium">Escolha as bandeiras e gire a roleta. Boa sorte!</div>`;
+                }
+            }, 3600);
+        }
+
+        function showStatusMessage(msg, duration = 2000) {
+            const text = document.getElementById('status-text');
+            if (!text) return;
+            const old = text.textContent;
+            text.textContent = msg;
+            text.style.color = '#fde047';
+
+            setTimeout(() => {
+                if (!isSpinning && text.textContent === msg) {
+                    text.textContent = old || 'Escolha as bandeiras e gire a roleta. Boa sorte!';
+                    text.style.color = '';
+                }
+            }, duration);
+        }
+
+        function createCoinPayoutAnimation(amount) {
+            const machine = document.querySelector('.machine');
+            const count = Math.min(12, Math.max(6, Math.floor(amount / 1.8)));
+
+            for (let i = 0; i < count; i++) {
+                setTimeout(() => {
+                    const coin = document.createElement('div');
+                    coin.className = 'coin text-yellow-300';
+                    coin.innerHTML = '🪙';
+                    coin.style.left = (28 + Math.random() * 48) + '%';
+                    coin.style.top = '38%';
+                    coin.style.position = 'absolute';
+                    machine.appendChild(coin);
+
+                    setTimeout(() => {
+                        coin.style.transition = `all ${920 + Math.random()*380}ms cubic-bezier(0.2,0.1,0.3,1)`;
+                        coin.style.top = '95%';
+                        coin.style.opacity = '0';
+                        coin.style.transform = `rotate(${280 + Math.random()*480}deg)`;
+                        setTimeout(() => coin.remove(), 950);
+                    }, 50);
+                }, i * 32);
+            }
+        }
+
+        // Audio
+        let audioCtx;
+        function getAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            return audioCtx;
+        }
+
+        function playCoinSound() {
+            try {
+                const ctx = getAudio();
+                const o = ctx.createOscillator();
+                const g = ctx.createGain();
+                o.type = 'square';
+                o.frequency.value = 920;
+                g.gain.value = 0.22;
+                o.connect(g);
+                g.connect(ctx.destination);
+                o.start();
+                setTimeout(() => {
+                    g.gain.linearRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+                    setTimeout(() => o.stop(), 280);
+                }, 70);
+            } catch(e){}
+        }
+
+        function playSpinSound() {
+            try {
+                const ctx = getAudio();
+                let id = setInterval(() => {
+                    if (!isSpinning) { clearInterval(id); return; }
+                    const o = ctx.createOscillator();
+                    const g = ctx.createGain();
+                    o.type = 'sawtooth';
+                    o.frequency.value = 160 + Math.random() * 90;
+                    g.gain.value = 0.028;
+                    o.connect(g); g.connect(ctx.destination);
+                    o.start();
+                    setTimeout(() => {
+                        g.gain.linearRampToValueAtTime(0.0001, ctx.currentTime + 0.08);
+                        setTimeout(() => o.stop(), 90);
+                    }, 45);
+                }, 88);
+                return id;
+            } catch(e){ return null; }
+        }
+
+        function playWinSound() {
+            try {
+                const ctx = getAudio();
+                const notes = [523, 659, 784, 1046, 1318];
+                notes.forEach((f, i) => {
+                    setTimeout(() => {
+                        const o = ctx.createOscillator();
+                        const g = ctx.createGain();
+                        o.type = 'triangle';
+                        o.frequency.value = f;
+                        g.gain.value = 0.2;
+                        o.connect(g); g.connect(ctx.destination);
+                        o.start();
+                        setTimeout(() => {
+                            g.gain.linearRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+                            setTimeout(() => o.stop(), 420);
+                        }, 160);
+                    }, i * 85);
+                });
+            } catch(e){}
+        }
+
+        function playLoseSound() {
+            try {
+                const ctx = getAudio();
+                const o = ctx.createOscillator();
+                const g = ctx.createGain();
+                o.type = 'sawtooth';
+                o.frequency.value = 210;
+                g.gain.value = 0.16;
+                o.connect(g); g.connect(ctx.destination);
+                o.start();
+                setTimeout(() => {
+                    o.frequency.linearRampToValueAtTime(95, ctx.currentTime + 0.65);
+                    g.gain.linearRampToValueAtTime(0.001, ctx.currentTime + 0.75);
+                    setTimeout(() => o.stop(), 800);
+                }, 150);
+            } catch(e){}
+        }
+
+        function resetMachine() {
+            if (isSpinning) return;
+            credits = 25;
+            selectedFlags.clear();
+            flagElements.forEach(el => el.classList.remove('selected', 'lit', 'winner'));
+            document.getElementById('winner-display').classList.add('hidden');
+            updateCreditsDisplay();
+            updateSelectedCount();
+            updateSpinButtonState();
+            
+            const area = document.getElementById('status-area');
+            area.innerHTML = `<div id="status-text" class="px-6 py-2 text-sm text-yellow-300/90 font-medium">Máquina resetada. Boa sorte!</div>`;
+            setTimeout(() => {
+                const t = document.getElementById('status-text');
+                if (t) t.textContent = 'Escolha as bandeiras e gire a roleta. Boa sorte!';
+            }, 1400);
+        }
+
+        function initGame() {
+            renderFlagPanel();
+            updateCreditsDisplay();
+            updateSpinButtonState();
+
+            // Keyboard
+            document.addEventListener('keydown', e => {
+                if ((e.key === ' ' || e.key === 'Enter') && !document.getElementById('spin-btn').disabled) {
+                    e.preventDefault();
+                    spinRoulette();
+                }
+                if (e.key.toLowerCase() === 'c') insertCoin();
+                if (e.key.toLowerCase() === 'r') resetMachine();
+            });
+
+            // Initial message
+            setTimeout(() => {
+                const t = document.getElementById('status-text');
+                if (t) t.textContent = 'Bem-vindo! Insira moedas e aposte nas bandeiras da Copa 98.';
+            }, 1600);
+
+            // Easter egg
+            const header = document.querySelector('.machine-header');
+            if (header) {
+                let used = false;
+                header.addEventListener('click', () => {
+                    if (!used && !isSpinning) {
+                        used = true;
+                        credits += 4;
+                        updateCreditsDisplay();
+                        showStatusMessage('Bônus da casa! +4 créditos', 1200);
+                    }
+                });
+            }
+
+            console.log('%c[Caça-Níquel Copa 98] Versão atualizada carregada com sucesso.', 'color:#854d0e');
+        }
+
+        window.onload = initGame;
+    </script>
+</body>
+</html>
